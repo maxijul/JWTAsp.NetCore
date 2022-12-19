@@ -50,17 +50,31 @@ namespace ProyectoToken.Services
       var tokenHandler = new JwtSecurityTokenHandler();
       var tokenConfig = tokenHandler.CreateToken(tokenDescriptor);
       
-      // Devolvemos el token ya creado
+      // Devolvemos el token ya creadogit 
       string tokenCreado = tokenHandler.WriteToken(tokenConfig);
       return tokenCreado;
 
     }
 
-
-
-    public Task<AuthorizationResponse> DevolverToken(AuthorizationRequest autorizacion)
+    public async Task<AuthorizationResponse> DevolverToken(AuthorizationRequest autorizacion)
     {
-      
+      // Verificamos si el usuario existe y coincide con los parametros usando entity framework
+      var usuarioEncontrado = _context.Usuarios.FirstOrDefault(usuario =>
+        usuario.NombreUsuario == autorizacion.NombreUsuario &&
+        usuario.Clave == autorizacion.Clave
+      );
+
+      // Validamos si el usuario existe
+      if (usuarioEncontrado == null)
+      {
+        return new AuthorizationResponse() { Token = null, Resultado = false, Mensaje = "No existe usuario" };
+      }
+
+      // El usuario existe se crean el token y se devuelve la respuesta con el token, su estado de respuesta y un mensaje
+      string tokenCreado = GenerarToken(usuarioEncontrado.IdUsuario.ToString());
+
+      return new AuthorizationResponse() { Token = tokenCreado, Resultado = true, Mensaje = "Ok" };
+
     }
   }
 }
