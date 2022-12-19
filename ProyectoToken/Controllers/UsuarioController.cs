@@ -20,7 +20,7 @@ namespace ProyectoToken.Controllers
 
     [HttpPost]
     [Route("Autenticar")]
-    // Aqui autenticamos si el parametro que recibimos del body es un token correcto y devolvemos segun lo que corresponda
+    // Aqui autenticamos si el parametro que recibimos del body son credenciales correctas asi devolvemos el token
     public async Task<IActionResult> Autenticar([FromBody] AuthorizationRequest autorizacion)
     {
       var resultadoAutorizacion = await _authorizationService.DevolverToken(autorizacion);
