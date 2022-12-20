@@ -5,17 +5,25 @@
 ### Para Iniciar el proyecto
 1. Ejecutar los scripts de SQLQUERYS para crear la base de datos con sus tablas
 2. Poner la siguiente instruccion en la consola de nugget sacando los parentesis ==Scaffold-DbContext "Server=(SuServer); DataBase=(SubaseDeDatos); Trusted_Connection=True; TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir Models==
-3. Crear sobre el proyecto el archivo ==appsettings.json== y copiar todo lo que contenga appsettings.Development.json y agregarle el codigo de abajo con sus respectivas credenciales
+3. Crear sobre el proyecto el archivo ==appsettings.json== y copiar lo siguiente cambiando sus credenciales
 
-	`
-		"AllowedHosts": "*",
-		"ConnectionStrings": {
-			"cadenaSQL": "Server=(SuServer); DataBase=(SuBaseDeDatos); Trusted_Connection=True; TrustServerCertificate=True;"
-		},
-		"JwtSettings": {
-			"key": "=probando_jwt1234="
-		}
-	`
+	```
+    {
+      "Logging": {
+        "LogLevel": {
+          "Default": "Information",
+          "Microsoft.AspNetCore": "Warning"
+        }
+      },
+      "AllowedHosts": "*",
+      "ConnectionStrings": {
+        "cadenaSQL": "Server=(SuServer); DataBase=(SubaseDeDatos); Trusted_Connection=True; TrustServerCertificate=True;"
+      },
+      "JwtSettings": {
+        "key": "=probando_jwt1234="
+      }
+    }
+	```
 
 ## Librerias usadas
   - Microsoft.EntityFrameworkCore.SqlServer - version 7
