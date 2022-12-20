@@ -7,6 +7,7 @@ using ProyectoToken.Models.Custom;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
+using System.Security.Cryptography;
 
 namespace ProyectoToken.Services
 {
@@ -67,14 +68,70 @@ namespace ProyectoToken.Services
       // Validamos si el usuario existe
       if (usuarioEncontrado == null)
       {
-        return new AuthorizationResponse() { Token = null, Resultado = false, Mensaje = "No existe usuario" };
+        return await Task.FromResult<AuthorizationResponse>(null);
       }
 
       // El usuario existe se crean el token y se devuelve la respuesta con el token, su estado de respuesta y un mensaje
       string tokenCreado = GenerarToken(usuarioEncontrado.IdUsuario.ToString());
 
-      return new AuthorizationResponse() { Token = tokenCreado, Resultado = true, Mensaje = "Ok" };
+      string refreshTokenCreado = GenerarRefreshToken();
+
+      //return new AuthorizationResponse() { Token = tokenCreado, Resultado = true, Mensaje = "Ok" };
+
+      return await GuardarHistorialRefreshToken(usuarioEncontrado.IdUsuario, tokenCreado, refreshTokenCreado);
 
     }
+
+    private string GenerarRefreshToken()
+    {
+      var byteArray = new byte[64];
+      var refreshToken = "";
+
+      using (var generador = RandomNumberGenerator.Create())
+      {
+        generador.GetBytes(byteArray);
+        refreshToken = Convert.ToBase64String(byteArray);
+      }
+      return refreshToken;
+    }
+
+    private async Task<AuthorizationResponse> GuardarHistorialRefreshToken(int id, string token, string refreshToken)
+    {
+      var historialRefreshToken = new HistorialRefreshToken
+      {
+        IdUsuario = id,
+        Token = token,
+        RefreshToken = refreshToken,
+        FechaCreacion = DateTime.UtcNow,
+        FechaExpiracion = DateTime.UtcNow.AddMinutes(2)
+      };
+
+      await _context.HistorialRefreshTokens.AddAsync(historialRefreshToken);
+      await _context.SaveChangesAsync();
+
+      return new AuthorizationResponse() { Token = token, RefreshToken = refreshToken, Resultado = true, Mensaje = "OK" };
+
+    }
+
+    public async Task<AuthorizationResponse> DevolverRefreshToken(RefreshTokenRequest refreshTokenRequest, int id)
+    {
+      var refreshTokenEncontrado = _context.HistorialRefreshTokens.FirstOrDefault(token =>
+        token.Token == refreshTokenRequest.TokenExpirado &&
+        token.RefreshToken == refreshTokenRequest.RefreshToken &&
+        token.IdUsuario == id
+      );
+
+      if (refreshTokenEncontrado == null)
+        return new AuthorizationResponse { Resultado = false, Mensaje = "No existe RefreshToken" };
+
+      var refreshTokenCreado = GenerarRefreshToken();
+      var tokenCreado = GenerarToken(id.ToString());
+
+
+      return await GuardarHistorialRefreshToken(id, tokenCreado, refreshTokenCreado);
+    }
+
+
+
   }
 }
